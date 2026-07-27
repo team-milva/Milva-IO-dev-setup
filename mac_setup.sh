@@ -6,28 +6,11 @@
 # --- Farver ---
 GREEN='\033[0;32m'; GRAY='\033[0;90m'; BOLD='\033[1m'; RESET='\033[0m'
 
-# --- Valgmuligheder: 1 = valgt, 0 = fravalgt ---
-declare -A SELECTED
-SELECTED=(
-  [xcode]=1
-  [homebrew]=1
-  [gh]=1
-  [nvm]=1
-  [pyenv]=1
-  [openjdk]=1
-  [vscode]=1
-  [chrome]=1
-  [github_desktop]=1
-  [insomnia]=1
-  [slack]=1
-  [obsidian]=1
-  [claude]=1
-  [gcloud]=1
-  [node]=1
-  [firebase]=1
-  [zshrc]=1
-  [gh_login]=1
-)
+# --- Keys, labels en selectie (parallelle arrays — werkt op bash 3) ---
+# Indices: 0=xcode 1=homebrew 2=gh 3=nvm 4=pyenv 5=openjdk 6=vscode 7=chrome
+#          8=github_desktop 9=insomnia 10=slack 11=obsidian 12=claude 13=gcloud
+#          14=node 15=firebase 16=zshrc 17=gh_login
+KEYS=(xcode homebrew gh nvm pyenv openjdk vscode chrome github_desktop insomnia slack obsidian claude gcloud node firebase zshrc gh_login)
 
 LABELS=(
   "xcode           Xcode Command Line Tools"
@@ -50,11 +33,22 @@ LABELS=(
   "gh_login        gh auth login"
 )
 
-KEYS=(xcode homebrew gh nvm pyenv openjdk vscode chrome github_desktop insomnia slack obsidian claude gcloud node firebase zshrc gh_login)
+# Parallel selectie-array (1=aan, 0=uit) — geen associatieve array nodig
+SEL=(1 1 1 1 1 1 1 1 1 1 1 1 1 1 1 1 1 1)
+
+# Helper: geeft index terug van een key
+key_idx() {
+  local k=$1 i
+  for i in "${!KEYS[@]}"; do
+    [[ "${KEYS[$i]}" == "$k" ]] && echo $i && return
+  done
+}
+
+# Shorthand: is key geselecteerd?
+is_sel() { [[ "${SEL[$(key_idx "$1")]}" == "1" ]]; }
 
 # --- Farver ekstra ---
-CYAN='\033[0;36m'; BLUE='\033[0;34m'; WHITE='\033[1;37m'
-BG_BLUE='\033[44m'; BG_RESET='\033[49m'
+WHITE='\033[1;37m'; BG_BLUE='\033[44m'
 
 draw_menu() {
   local cursor=$1
@@ -63,12 +57,11 @@ draw_menu() {
   echo -e "  ${BOLD}${WHITE}Mac Setup — vælg hvad der skal installeres${RESET}"
   echo -e "  ${GRAY}↑↓ naviger   Space toggle   a alle   n ingen   Enter start${RESET}"
   echo ""
+  local i
   for i in "${!KEYS[@]}"; do
-    local key="${KEYS[$i]}"
     local label="${LABELS[$i]}"
-    local checked="${SELECTED[$key]}"
+    local checked="${SEL[$i]}"
     if [[ $i -eq $cursor ]]; then
-      # Highlighted row
       if [[ "$checked" == "1" ]]; then
         echo -e "  ${BG_BLUE}${WHITE}${BOLD} ● ${label} ${RESET}"
       else
@@ -83,8 +76,8 @@ draw_menu() {
     fi
   done
   echo ""
-  local count=0
-  for key in "${KEYS[@]}"; do [[ "${SELECTED[$key]}" == "1" ]] && ((count++)); done
+  local count=0 i
+  for i in "${!SEL[@]}"; do [[ "${SEL[$i]}" == "1" ]] && ((count++)); done
   echo -e "  ${GRAY}${count}/${#KEYS[@]} valgt${RESET}"
   echo ""
 }
@@ -96,22 +89,19 @@ total=${#KEYS[@]}
 while true; do
   draw_menu $cursor
 
-  # Read a single keypress
   IFS= read -rsn1 key
   if [[ $key == $'\x1b' ]]; then
-    # Escape sequence — read two more bytes
     read -rsn2 -t 0.1 seq
     case "$seq" in
-      '[A') (( cursor = (cursor - 1 + total) % total )) ;;  # Up
-      '[B') (( cursor = (cursor + 1) % total ))          ;;  # Down
+      '[A') (( cursor = (cursor - 1 + total) % total )) ;;  # Op
+      '[B') (( cursor = (cursor + 1) % total ))          ;;  # Ned
     esac
   elif [[ $key == ' ' ]]; then
-    k="${KEYS[$cursor]}"
-    SELECTED[$k]=$(( 1 - SELECTED[$k] ))
+    SEL[$cursor]=$(( 1 - SEL[$cursor] ))
   elif [[ $key == 'a' ]]; then
-    for k in "${KEYS[@]}"; do SELECTED[$k]=1; done
+    for i in "${!SEL[@]}"; do SEL[$i]=1; done
   elif [[ $key == 'n' ]]; then
-    for k in "${KEYS[@]}"; do SELECTED[$k]=0; done
+    for i in "${!SEL[@]}"; do SEL[$i]=0; done
   elif [[ $key == '' ]]; then
     break
   fi
@@ -124,7 +114,7 @@ echo "🚀 Starter installation..."
 # =============================================================================
 # XCODE COMMAND LINE TOOLS
 # =============================================================================
-if [[ "${SELECTED[xcode]}" == "1" ]]; then
+if is_sel xcode; then
   echo "\n📦 Xcode Command Line Tools..."
   if ! xcode-select -p &>/dev/null; then
     xcode-select --install
@@ -138,7 +128,7 @@ fi
 # =============================================================================
 # HOMEBREW
 # =============================================================================
-if [[ "${SELECTED[homebrew]}" == "1" ]]; then
+if is_sel homebrew; then
   echo "\n🍺 Homebrew..."
   if ! command -v brew &>/dev/null; then
     /bin/bash -c "$(curl -fsSL https://raw.githubusercontent.com/Homebrew/install/HEAD/install.sh)"
@@ -154,10 +144,10 @@ fi
 # HOMEBREW FORMULAS
 # =============================================================================
 FORMULAS=()
-[[ "${SELECTED[gh]}" == "1" ]]      && FORMULAS+=(gh)
-[[ "${SELECTED[nvm]}" == "1" ]]     && FORMULAS+=(nvm)
-[[ "${SELECTED[pyenv]}" == "1" ]]   && FORMULAS+=(pyenv)
-[[ "${SELECTED[openjdk]}" == "1" ]] && FORMULAS+=(openjdk)
+is_sel gh      && FORMULAS+=(gh)
+is_sel nvm     && FORMULAS+=(nvm)
+is_sel pyenv   && FORMULAS+=(pyenv)
+is_sel openjdk && FORMULAS+=(openjdk)
 
 if [[ ${#FORMULAS[@]} -gt 0 ]]; then
   echo "\n📦 Homebrew formulas: ${FORMULAS[*]}..."
@@ -165,7 +155,7 @@ if [[ ${#FORMULAS[@]} -gt 0 ]]; then
 fi
 
 # Python via pyenv
-if [[ "${SELECTED[pyenv]}" == "1" ]]; then
+if is_sel pyenv; then
   LATEST_PYTHON=$(pyenv install --list | grep -E "^\s+[0-9]+\.[0-9]+\.[0-9]+$" | tail -1 | tr -d ' ')
   echo "📦 Installerer Python $LATEST_PYTHON..."
   pyenv install "$LATEST_PYTHON"
@@ -176,14 +166,14 @@ fi
 # HOMEBREW CASKS
 # =============================================================================
 CASKS=()
-[[ "${SELECTED[vscode]}" == "1" ]]          && CASKS+=(visual-studio-code)
-[[ "${SELECTED[chrome]}" == "1" ]]          && CASKS+=(google-chrome)
-[[ "${SELECTED[github_desktop]}" == "1" ]]  && CASKS+=(github)
-[[ "${SELECTED[insomnia]}" == "1" ]]        && CASKS+=(insomnia)
-[[ "${SELECTED[slack]}" == "1" ]]           && CASKS+=(slack)
-[[ "${SELECTED[obsidian]}" == "1" ]]        && CASKS+=(obsidian)
-[[ "${SELECTED[claude]}" == "1" ]]          && CASKS+=(claude)
-[[ "${SELECTED[gcloud]}" == "1" ]]          && CASKS+=(google-cloud-sdk)
+is_sel vscode          && CASKS+=(visual-studio-code)
+is_sel chrome          && CASKS+=(google-chrome)
+is_sel github_desktop  && CASKS+=(github)
+is_sel insomnia        && CASKS+=(insomnia)
+is_sel slack           && CASKS+=(slack)
+is_sel obsidian        && CASKS+=(obsidian)
+is_sel claude          && CASKS+=(claude)
+is_sel gcloud          && CASKS+=(google-cloud-sdk)
 
 if [[ ${#CASKS[@]} -gt 0 ]]; then
   echo "\n🖥️  Apps: ${CASKS[*]}..."
@@ -193,7 +183,7 @@ fi
 # =============================================================================
 # NODE
 # =============================================================================
-if [[ "${SELECTED[node]}" == "1" ]]; then
+if is_sel node; then
   echo "\n📗 Node.js (latest) via nvm..."
   export NVM_DIR="$HOME/.nvm"
   mkdir -p "$NVM_DIR"
@@ -207,7 +197,7 @@ fi
 # =============================================================================
 # NPM GLOBALS
 # =============================================================================
-if [[ "${SELECTED[firebase]}" == "1" ]]; then
+if is_sel firebase; then
   echo "\n📦 firebase-tools..."
   npm install -g firebase-tools
 fi
@@ -215,7 +205,7 @@ fi
 # =============================================================================
 # ZSHRC
 # =============================================================================
-if [[ "${SELECTED[zshrc]}" == "1" ]]; then
+if is_sel zshrc; then
   echo "\n⚙️  ~/.zshrc..."
   ZSHRC="$HOME/.zshrc"
 
@@ -246,7 +236,7 @@ fi
 # =============================================================================
 # GH LOGIN
 # =============================================================================
-if [[ "${SELECTED[gh_login]}" == "1" ]]; then
+if is_sel gh_login; then
   echo "\n🔑 GitHub CLI login..."
   gh auth login
 fi
