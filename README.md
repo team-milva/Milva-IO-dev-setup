@@ -35,10 +35,13 @@ An interactive menu will appear where you can toggle individual components on or
 
 ## Menu controls
 
-- Type a number to toggle that item on/off
-- `a` — select all
-- `n` — deselect all
-- `Enter` — start installation
+| Key | Action |
+|---|---|
+| `↑` / `↓` | Navigate |
+| `Space` | Toggle item |
+| `a` | Select all |
+| `n` | Deselect all |
+| `Enter` | Start installation |
 
 ## After setup
 

@@ -52,41 +52,68 @@ LABELS=(
 
 KEYS=(xcode homebrew gh nvm pyenv openjdk vscode chrome github_desktop insomnia slack obsidian claude gcloud node firebase zshrc gh_login)
 
-show_menu() {
+# --- Farver ekstra ---
+CYAN='\033[0;36m'; BLUE='\033[0;34m'; WHITE='\033[1;37m'
+BG_BLUE='\033[44m'; BG_RESET='\033[49m'
+
+draw_menu() {
+  local cursor=$1
   clear
   echo ""
-  echo -e "  ${BOLD}Mac Setup — vælg hvad der skal installeres${RESET}"
-  echo -e "  ${GRAY}Tast nummeret for at toggle. Enter for at starte.${RESET}"
+  echo -e "  ${BOLD}${WHITE}Mac Setup — vælg hvad der skal installeres${RESET}"
+  echo -e "  ${GRAY}↑↓ naviger   Space toggle   a alle   n ingen   Enter start${RESET}"
   echo ""
   for i in "${!KEYS[@]}"; do
-    key="${KEYS[$i]}"
-    label="${LABELS[$i]}"
-    num=$(printf "%2d" $((i + 1)))
-    if [[ "${SELECTED[$key]}" == "1" ]]; then
-      echo -e "  ${GREEN}[✓]${RESET} ${num}. ${label}"
+    local key="${KEYS[$i]}"
+    local label="${LABELS[$i]}"
+    local checked="${SELECTED[$key]}"
+    if [[ $i -eq $cursor ]]; then
+      # Highlighted row
+      if [[ "$checked" == "1" ]]; then
+        echo -e "  ${BG_BLUE}${WHITE}${BOLD} ● ${label} ${RESET}"
+      else
+        echo -e "  ${BG_BLUE}${WHITE}${BOLD} ○ ${label} ${RESET}"
+      fi
     else
-      echo -e "  ${GRAY}[ ]  ${num}. ${label}${RESET}"
+      if [[ "$checked" == "1" ]]; then
+        echo -e "  ${GREEN} ● ${RESET}${label}"
+      else
+        echo -e "  ${GRAY} ○ ${label}${RESET}"
+      fi
     fi
   done
   echo ""
-  echo -e "  ${GRAY}[a] Vælg alle   [n] Fravælg alle   [Enter] Start installation${RESET}"
+  local count=0
+  for key in "${KEYS[@]}"; do [[ "${SELECTED[$key]}" == "1" ]] && ((count++)); done
+  echo -e "  ${GRAY}${count}/${#KEYS[@]} valgt${RESET}"
   echo ""
 }
 
-# --- Interaktiv menu ---
-while true; do
-  show_menu
-  read -rp "  Valg: " input
+# --- Interaktiv menu med piltaster ---
+cursor=0
+total=${#KEYS[@]}
 
-  if [[ -z "$input" ]]; then
+while true; do
+  draw_menu $cursor
+
+  # Read a single keypress
+  IFS= read -rsn1 key
+  if [[ $key == $'\x1b' ]]; then
+    # Escape sequence — read two more bytes
+    read -rsn2 -t 0.1 seq
+    case "$seq" in
+      '[A') (( cursor = (cursor - 1 + total) % total )) ;;  # Up
+      '[B') (( cursor = (cursor + 1) % total ))          ;;  # Down
+    esac
+  elif [[ $key == ' ' ]]; then
+    k="${KEYS[$cursor]}"
+    SELECTED[$k]=$(( 1 - SELECTED[$k] ))
+  elif [[ $key == 'a' ]]; then
+    for k in "${KEYS[@]}"; do SELECTED[$k]=1; done
+  elif [[ $key == 'n' ]]; then
+    for k in "${KEYS[@]}"; do SELECTED[$k]=0; done
+  elif [[ $key == '' ]]; then
     break
-  elif [[ "$input" == "a" ]]; then
-    for key in "${KEYS[@]}"; do SELECTED[$key]=1; done
-  elif [[ "$input" == "n" ]]; then
-    for key in "${KEYS[@]}"; do SELECTED[$key]=0; done
-  elif [[ "$input" =~ ^[0-9]+$ ]] && (( input >= 1 && input <= ${#KEYS[@]} )); then
-    key="${KEYS[$((input - 1))]}"
-    SELECTED[$key]=$(( 1 - SELECTED[$key] ))
   fi
 done
 
