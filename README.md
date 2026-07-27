@@ -8,7 +8,7 @@ Interactive shell script for setting up a new Mac development environment at Mil
 bash <(curl -fsSL https://raw.githubusercontent.com/team-milva/Milva-IO-dev-setup/master/mac_setup.sh)
 ```
 
-An interactive menu will appear where you can toggle individual components on or off before starting the installation.
+An interactive menu will appear listing everything that will be installed. Press **Enter** to start or **Ctrl+C** to abort.
 
 ## What gets installed
 
@@ -33,15 +33,10 @@ An interactive menu will appear where you can toggle individual components on or
 | .zshrc config | nvm + pyenv shell setup |
 | gh auth login | GitHub CLI authentication |
 
-## Menu controls
+## Controls
 
-| Key | Action |
-|---|---|
-| `↑` / `↓` | Navigate |
-| `Space` | Toggle item |
-| `a` | Select all |
-| `n` | Deselect all |
-| `Enter` | Start installation |
+- **Enter** — start installation
+- **Ctrl+C** — abort
 
 ## After setup
 
