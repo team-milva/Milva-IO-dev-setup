@@ -29,6 +29,7 @@ echo -e "  ${GREEN}✓${RESET}  Google Cloud SDK"
 echo -e "  ${GREEN}✓${RESET}  firebase-tools"
 echo -e "  ${GREEN}✓${RESET}  .zshrc opsætning"
 echo -e "  ${GREEN}✓${RESET}  gh auth login"
+echo -e "  ${GREEN}✓${RESET}  Uniqkey (Chrome-udvidelse)"
 echo ""
 read -rp "  Tryk Enter for at starte, eller Ctrl+C for at afbryde... "
 echo ""
@@ -161,6 +162,19 @@ EOF
     echo "✓ pyenv tilføjet"
   fi
 fi
+
+# =============================================================================
+# UNIQKEY — CHROME EXTENSION
+# =============================================================================
+echo "\n🔑 Uniqkey Chrome-udvidelse..."
+EXT_DIR="$HOME/Library/Application Support/Google/Chrome/External Extensions"
+mkdir -p "$EXT_DIR"
+cat > "$EXT_DIR/pmpjckeomobflnchldnjiafebplbclan.json" << 'EOF'
+{
+  "external_update_url": "https://clients2.google.com/service/update2/crx"
+}
+EOF
+echo "✓ Uniqkey installeres næste gang Chrome åbnes"
 
 # =============================================================================
 # GH LOGIN

@@ -32,6 +32,7 @@ An interactive menu will appear listing everything that will be installed. Press
 | firebase-tools | Firebase CLI (npm global) |
 | .zshrc config | nvm + pyenv shell setup |
 | gh auth login | GitHub CLI authentication |
+| Uniqkey | Chrome extension (password manager) |
 
 ## Controls
 
