@@ -25,6 +25,7 @@ echo -e "  ${GREEN}✓${RESET}  Insomnia"
 echo -e "  ${GREEN}✓${RESET}  Slack"
 echo -e "  ${GREEN}✓${RESET}  Obsidian"
 echo -e "  ${GREEN}✓${RESET}  Claude"
+echo -e "  ${GREEN}✓${RESET}  Wispr Flow"
 echo -e "  ${GREEN}✓${RESET}  Google Cloud SDK"
 echo -e "  ${GREEN}✓${RESET}  firebase-tools"
 echo -e "  ${GREEN}✓${RESET}  .zshrc opsætning"
@@ -103,6 +104,7 @@ is_sel insomnia        && CASKS+=(insomnia)
 is_sel slack           && CASKS+=(slack)
 is_sel obsidian        && CASKS+=(obsidian)
 is_sel claude          && CASKS+=(claude)
+is_sel wispr_flow      && CASKS+=(wispr-flow)
 is_sel gcloud          && CASKS+=(google-cloud-sdk)
 
 if [[ ${#CASKS[@]} -gt 0 ]]; then
